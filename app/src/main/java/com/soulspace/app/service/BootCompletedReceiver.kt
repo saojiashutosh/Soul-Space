@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import com.soulspace.app.data.local.SoulSpaceDatabase
 import com.soulspace.app.util.NotificationHelper
+import com.soulspace.app.util.WaterReminderScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -20,6 +21,9 @@ class BootCompletedReceiver : BroadcastReceiver() {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val db = SoulSpaceDatabase.getDatabase(context)
+
+                    // Alarms are wiped by a reboot: restore the water reminder chain
+                    WaterReminderScheduler.reschedule(context)
 
                     // Reschedule habit alarms
                     val habits = db.habitDao().getAllHabits().first()
