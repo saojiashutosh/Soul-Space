@@ -8,6 +8,23 @@ All core features are **100% free**, **offline-first**, and require **zero accou
 
 ---
 
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/home.png" width="240" alt="Home"><br><sub><b>Home</b></sub></td>
+    <td align="center"><img src="docs/screenshots/sounds.png" width="240" alt="Sound mixer"><br><sub><b>Sound mixer</b></sub></td>
+    <td align="center"><img src="docs/screenshots/focus.png" width="240" alt="Focus timer"><br><sub><b>Focus timer</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/meditation.png" width="240" alt="Meditation"><br><sub><b>Meditation</b></sub></td>
+    <td align="center"><img src="docs/screenshots/hydration.png" width="240" alt="Hydration reminders"><br><sub><b>Hydration</b></sub></td>
+    <td align="center"><img src="docs/screenshots/blocker.png" width="240" alt="App blocker"><br><sub><b>App blocker</b></sub></td>
+  </tr>
+</table>
+
+---
+
 ## Visual Design Philosophy (Zen Sanctuary)
 
 Inspired by modern editorial typography, natural ceramics, and calm Japanese minimalism:
