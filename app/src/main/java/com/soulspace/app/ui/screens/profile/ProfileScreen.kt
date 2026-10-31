@@ -184,6 +184,9 @@ fun ProfileScreen(
             }
         }
 
+        // Credits for the recordings that require attribution
+        item { SoundCreditsCard() }
+
         // Privacy & Reset
         item {
             Card(
@@ -224,6 +227,8 @@ fun ProfileScreen(
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
             containerColor = SanctuarySurface,
+            titleContentColor = CharcoalDeep,
+            textContentColor = CharcoalMuted,
             title = { Text("Reset Local Sanctuary", fontFamily = FontFamily.Serif) },
             text = { Text("Are you sure you want to clear all habits, timetables, and logs? This action cannot be undone.") },
             confirmButton = {
@@ -232,7 +237,8 @@ fun ProfileScreen(
                         viewModel.clearAllData()
                         showResetDialog = false
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = TerracottaClay)
+                    shape = CircleShape,
+                colors = ButtonDefaults.buttonColors(containerColor = TerracottaClay, contentColor = Color.White)
                 ) {
                     Text("Clear All Data", color = Color.White)
                 }
@@ -275,3 +281,60 @@ fun PermissionRow(
     }
 }
 
+
+private val soundCredits = listOf(
+    "Waterfall: \"Cascade de Syratu\" by Arie m den toom (CC BY 4.0)",
+    "Ocean Tides: \"Oceanwavescrushing\" by Luftrum (CC BY 3.0)",
+    "Campfire and Night Pond: Glaneur de sons (CC BY 3.0)",
+    "Dawn Birds: \"Royal Natal National Park dawn chorus\" (CC BY 4.0)",
+    "Heartbeat: Benboncan, via freesound.org (CC BY 3.0)",
+    "Temple Bell: \"Bonsyou5599\" by Jnn (CC BY 2.1 JP)",
+    "Singing Bowl II: Valera N. Trubin (CC BY 4.0)",
+    "Air Conditioner: \"Air conditioner hum 2\" by Gravity Sound (CC BY 4.0)"
+)
+
+@Composable
+private fun SoundCreditsCard() {
+    var expanded by remember { mutableStateOf(false) }
+    Card(
+        onClick = { expanded = !expanded },
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = SanctuarySurface),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.MusicNote, contentDescription = null, tint = SageDark)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Sound credits",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = CharcoalDeep,
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(
+                    if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                    contentDescription = if (expanded) "Hide credits" else "Show credits",
+                    tint = CharcoalMuted
+                )
+            }
+            if (expanded) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "Soundscapes are real recordings from Wikimedia Commons, trimmed and looped. Most are public domain or CC0. These need credit:",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = CharcoalMuted
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                soundCredits.forEach { line ->
+                    Text(
+                        text = line,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = CharcoalDeep,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+                }
+            }
+        }
+    }
+}

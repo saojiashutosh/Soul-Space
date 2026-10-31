@@ -1,5 +1,6 @@
 package com.soulspace.app.ui.screens.planner
 
+import com.soulspace.app.ui.components.soulTextFieldColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -186,6 +187,8 @@ fun AddTimetableDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SanctuarySurface,
+        titleContentColor = CharcoalDeep,
+        textContentColor = CharcoalMuted,
         title = { Text("Add Scheduled Activity", fontFamily = FontFamily.Serif) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -194,14 +197,16 @@ fun AddTimetableDialog(
                     onValueChange = { title = it },
                     label = { Text("Activity Title (e.g. Study Physics)") },
                     shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = soulTextFieldColors()
                 )
                 OutlinedTextField(
                     value = desc,
                     onValueChange = { desc = it },
                     label = { Text("Details / Notes") },
                     shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = soulTextFieldColors()
                 )
             }
         },
@@ -212,7 +217,8 @@ fun AddTimetableDialog(
                         onAdd(title, desc, startHour, startMinute, endHour, endMinute, "Work")
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = SagePrimary)
+                shape = CircleShape,
+                colors = ButtonDefaults.buttonColors(containerColor = SagePrimary, contentColor = Color.White)
             ) {
                 Text("Schedule", color = Color.White)
             }

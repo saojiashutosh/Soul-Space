@@ -1,5 +1,7 @@
 package com.soulspace.app.ui.screens.wellness
 
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -106,20 +108,21 @@ fun SleepScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f).padding(end = 12.dp)) {
                             Icon(Icons.Rounded.ShieldMoon, contentDescription = null, tint = SageDark)
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
-                                Text("Overnight App Restrictions", style = MaterialTheme.typography.titleSmall, color = CharcoalDeep)
-                                Text("Active 11:00 PM — 7:00 AM", style = MaterialTheme.typography.bodySmall, color = CharcoalMuted)
+                                Text("Overnight Restrictions", style = MaterialTheme.typography.titleSmall, color = CharcoalDeep, maxLines = 1)
+                                Text("11:00 PM — 7:00 AM", style = MaterialTheme.typography.bodySmall, color = CharcoalMuted, maxLines = 1)
                             }
                         }
                         Button(
                             onClick = onNavigateToBlocker,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = SageDark)
+                            shape = CircleShape,
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = SageDark, contentColor = Color.White)
                         ) {
-                            Text("Manage", color = Color.White, fontSize = 12.sp)
+                            Text("Manage", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
                         }
                     }
                 }

@@ -1,5 +1,8 @@
 package com.soulspace.app.ui.screens.analytics
 
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -75,10 +78,11 @@ fun AnalyticsScreen(
                             }
                             Button(
                                 onClick = { PermissionManager.openUsageStatsSettings(context) },
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = TerracottaClay)
+                                shape = CircleShape,
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = TerracottaClay, contentColor = Color.White)
                             ) {
-                                Text("Grant", color = Color.White, fontSize = 12.sp)
+                                Text("Grant", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
                             }
                         }
                     }
@@ -140,12 +144,15 @@ fun AnalyticsScreen(
                             barColor = SagePrimary
                         )
                         Spacer(modifier = Modifier.height(10.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
+                        Row(modifier = Modifier.fillMaxWidth()) {
                             listOf("M", "T", "W", "T", "F", "S", "S").forEach { day ->
-                                Text(text = day, style = MaterialTheme.typography.labelSmall, color = CharcoalMuted)
+                                Text(
+                                    text = day,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = CharcoalMuted,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.weight(1f)
+                                )
                             }
                         }
                     }
