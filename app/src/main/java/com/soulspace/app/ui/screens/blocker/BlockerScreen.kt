@@ -1,5 +1,9 @@
 package com.soulspace.app.ui.screens.blocker
 
+import com.soulspace.app.util.ScheduleRules
+import com.soulspace.app.ui.components.DaySelector
+import androidx.compose.foundation.BorderStroke
+import android.app.TimePickerDialog
 import com.soulspace.app.ui.components.soulSwitchColors
 import com.soulspace.app.ui.components.EmptyHint
 import com.soulspace.app.ui.components.SoulSegmentedTabs
@@ -283,8 +287,8 @@ fun BlockerScreen(
         if (showAddScheduleDialog) {
             AddScheduleDialog(
                 onDismiss = { showAddScheduleDialog = false },
-                onAdd = { title, sH, sM, eH, eM, mode ->
-                    viewModel.addSchedule(title, sH, sM, eH, eM, mode)
+                onAdd = { title, sH, sM, eH, eM, mode, days ->
+                    viewModel.addSchedule(title, sH, sM, eH, eM, mode, days)
                     showAddScheduleDialog = false
                 }
             )
@@ -322,6 +326,11 @@ fun ScheduleCard(
                         fontFamily = FontFamily.Serif,
                         fontSize = 20.sp,
                         color = CharcoalDeep
+                    )
+                    Text(
+                        text = ScheduleRules.daysSummary(schedule.daysOfWeekMask),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = CharcoalMuted
                     )
                 }
                 Switch(
@@ -514,8 +523,10 @@ fun CommitmentModeTab(
 @Composable
 fun AddScheduleDialog(
     onDismiss: () -> Unit,
-    onAdd: (String, Int, Int, Int, Int, String) -> Unit
+    onAdd: (String, Int, Int, Int, Int, String, Int) -> Unit
 ) {
+    val context = LocalContext.current
+    var daysMask by remember { mutableIntStateOf(ScheduleRules.ALL_DAYS) }
     var title by remember { mutableStateOf("Deep Work Schedule") }
     var startHour by remember { mutableIntStateOf(9) }
     var startMinute by remember { mutableIntStateOf(0) }
@@ -543,29 +554,33 @@ fun AddScheduleDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedTextField(
-                        value = String.format("%02d:%02d", startHour, startMinute),
-                        onValueChange = {},
-                        label = { Text("Start Time") },
-                        readOnly = true,
-                        modifier = Modifier.weight(1f),
-                    colors = soulTextFieldColors()
-                )
-                    OutlinedTextField(
-                        value = String.format("%02d:%02d", endHour, endMinute),
-                        onValueChange = {},
-                        label = { Text("End Time") },
-                        readOnly = true,
-                        modifier = Modifier.weight(1f),
-                    colors = soulTextFieldColors()
-                )
+                    ScheduleTimeButton(
+                        label = "Start",
+                        hour = startHour,
+                        minute = startMinute,
+                        modifier = Modifier.weight(1f)
+                    ) { h, m -> startHour = h; startMinute = m }
+                    ScheduleTimeButton(
+                        label = "End",
+                        hour = endHour,
+                        minute = endMinute,
+                        modifier = Modifier.weight(1f)
+                    ) { h, m -> endHour = h; endMinute = m }
                 }
+                Text("REPEATS ON", style = MaterialTheme.typography.labelSmall, color = SageDark, letterSpacing = 1.sp)
+                DaySelector(mask = daysMask, onMaskChange = { daysMask = it })
+                Text(
+                    text = ScheduleRules.daysSummary(daysMask),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = CharcoalMuted
+                )
                 Text("Mode: $mode", style = MaterialTheme.typography.labelMedium, color = SageDark)
             }
         },
         confirmButton = {
             Button(
-                onClick = { onAdd(title, startHour, startMinute, endHour, endMinute, mode) },
+                onClick = { onAdd(title, startHour, startMinute, endHour, endMinute, mode, daysMask) },
+                enabled = daysMask != 0,
                 shape = CircleShape,
                 colors = ButtonDefaults.buttonColors(containerColor = SagePrimary, contentColor = Color.White)
             ) {
@@ -580,3 +595,34 @@ fun AddScheduleDialog(
     )
 }
 
+
+@Composable
+private fun ScheduleTimeButton(
+    label: String,
+    hour: Int,
+    minute: Int,
+    modifier: Modifier = Modifier,
+    onPicked: (Int, Int) -> Unit
+) {
+    val context = LocalContext.current
+    OutlinedButton(
+        onClick = { TimePickerDialog(context, { _, h, m -> onPicked(h, m) }, hour, minute, false).show() },
+        shape = RoundedCornerShape(14.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
+        colors = ButtonDefaults.outlinedButtonColors(containerColor = SanctuaryCardBg, contentColor = CharcoalDeep),
+        border = BorderStroke(1.dp, CharcoalDivider),
+        modifier = modifier
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(label, fontSize = 11.sp, color = CharcoalMuted, maxLines = 1)
+            Text(
+                text = String.format("%02d:%02d", hour, minute),
+                fontFamily = FontFamily.Serif,
+                fontSize = 17.sp,
+                color = CharcoalDeep,
+                maxLines = 1,
+                softWrap = false
+            )
+        }
+    }
+}

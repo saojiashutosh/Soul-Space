@@ -177,7 +177,7 @@ class BlockerViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun addSchedule(title: String, startH: Int, startM: Int, endH: Int, endM: Int, mode: String) {
+    fun addSchedule(title: String, startH: Int, startM: Int, endH: Int, endM: Int, mode: String, daysMask: Int = 127) {
         viewModelScope.launch(Dispatchers.IO) {
             db.blockerDao().insertSchedule(
                 BlockScheduleEntity(
@@ -186,6 +186,7 @@ class BlockerViewModel(application: Application) : AndroidViewModel(application)
                     startMinute = startM,
                     endHour = endH,
                     endMinute = endM,
+                    daysOfWeekMask = daysMask,
                     modeName = mode
                 )
             )
