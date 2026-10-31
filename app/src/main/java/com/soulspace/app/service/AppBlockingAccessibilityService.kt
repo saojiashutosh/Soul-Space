@@ -11,6 +11,7 @@ import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import com.soulspace.app.data.local.SoulSpaceDatabase
 import com.soulspace.app.data.preferences.UserPreferencesRepository
+import com.soulspace.app.util.ScheduleRules
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import java.util.Calendar
@@ -78,53 +79,25 @@ class AppBlockingAccessibilityService : AccessibilityService() {
             remainingSeconds = (userPrefs.temporaryBlockEndTimeMillis - now) / 1000
         }
 
-        // 2. Check active recurring schedules
-        if (!shouldBlock) {
-            val activeSchedules = database.blockerDao().getActiveSchedules().first()
-            val calendar = Calendar.getInstance()
-            val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
-            val currentMinute = calendar.get(Calendar.MINUTE)
-            val currentDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) // 1=Sun, 2=Mon...
-            val currentDayBit = 1 shl (currentDayOfWeek - 1)
+        // 2. Check active recurring schedules. Several blocks can apply at once (e.g. a 2h Quick Block
+        // during the overnight schedule); the app stays blocked until the LAST one ends, so show that one.
+        val activeSchedules = database.blockerDao().getActiveSchedules().first()
+        val calendar = Calendar.getInstance()
 
-            for (schedule in activeSchedules) {
-                // Check if today is active
-                if ((schedule.daysOfWeekMask and currentDayBit) != 0) {
-                    val isWithinTime = isTimeInRange(
-                        currentHour, currentMinute,
-                        schedule.startHour, schedule.startMinute,
-                        schedule.endHour, schedule.endMinute
-                    )
-                    if (isWithinTime) {
-                        shouldBlock = true
-                        reason = "${schedule.title} (${schedule.modeName} Mode)"
-                        remainingSeconds = calculateSecondsUntil(schedule.endHour, schedule.endMinute)
-                        break
-                    }
+        for (schedule in activeSchedules) {
+            // Honors the schedule's selected days; overnight windows count from the day they start
+            if (ScheduleRules.isActiveAt(schedule, calendar)) {
+                val secondsLeft = calculateSecondsUntil(schedule.endHour, schedule.endMinute)
+                if (!shouldBlock || secondsLeft > remainingSeconds) {
+                    shouldBlock = true
+                    reason = "${schedule.title} (${schedule.modeName} Mode)"
+                    remainingSeconds = secondsLeft
                 }
             }
         }
 
         if (shouldBlock) {
             triggerLockoutScreen(packageName, blockedApp.appName, reason, remainingSeconds)
-        }
-    }
-
-    private fun isTimeInRange(
-        curH: Int, curM: Int,
-        startH: Int, startM: Int,
-        endH: Int, endM: Int
-    ): Boolean {
-        val curTotal = curH * 60 + curM
-        val startTotal = startH * 60 + startM
-        val endTotal = endH * 60 + endM
-
-        return if (startTotal <= endTotal) {
-            // Normal range during same day (e.g., 9:00 AM to 5:00 PM)
-            curTotal in startTotal..endTotal
-        } else {
-            // Overnight range crossing midnight (e.g., 11:00 PM to 7:00 AM)
-            curTotal >= startTotal || curTotal <= endTotal
         }
     }
 
