@@ -63,7 +63,7 @@ fun SoulSpaceAppShell(
                                     Icon(
                                         imageVector = it,
                                         contentDescription = screen.title,
-                                        tint = if (isSelected) SagePrimary else CharcoalMuted
+                                        tint = if (isSelected) CharcoalDeep else CharcoalMuted
                                     )
                                 }
                             },
@@ -71,11 +71,11 @@ fun SoulSpaceAppShell(
                                 Text(
                                     text = screen.title,
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = if (isSelected) SageDark else CharcoalMuted
+                                    color = if (isSelected) CharcoalDeep else CharcoalMuted
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = SageLight.copy(alpha = 0.5f)
+                                indicatorColor = Color.Transparent
                             )
                         )
                     }
