@@ -1,7 +1,13 @@
 package com.soulspace.app.service
 
 import android.accessibilityservice.AccessibilityService
+import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
+import android.media.AudioManager
+import android.os.Handler
+import android.os.Looper
+import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import com.soulspace.app.data.local.SoulSpaceDatabase
 import com.soulspace.app.data.preferences.UserPreferencesRepository
@@ -11,6 +17,7 @@ import java.util.Calendar
 
 class AppBlockingAccessibilityService : AccessibilityService() {
 
+    private val mainHandler = Handler(Looper.getMainLooper())
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var database: SoulSpaceDatabase
     private lateinit var preferencesRepo: UserPreferencesRepository
@@ -140,6 +147,10 @@ class AppBlockingAccessibilityService : AccessibilityService() {
         reason: String,
         remainingSeconds: Long
     ) {
+        // The blocked app is still running underneath, so a video would keep playing behind the
+        // lockout screen. Stop it first, then show the lockout.
+        silenceBlockedApp(packageName)
+
         val intent = Intent(this, LockoutActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                     Intent.FLAG_ACTIVITY_CLEAR_TOP or
@@ -149,7 +160,24 @@ class AppBlockingAccessibilityService : AccessibilityService() {
             putExtra("REASON", reason)
             putExtra("REMAINING_SECONDS", remainingSeconds)
         }
-        startActivity(intent)
+        mainHandler.postDelayed({ startActivity(intent) }, 250)
+    }
+
+    /** Pauses playback, sends the app to the background, then ends its background process. */
+    private fun silenceBlockedApp(packageName: String) {
+        mainHandler.post {
+            // 1. Pause the active media session (the blocked app's video or music)
+            val audio = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            audio.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PAUSE))
+            audio.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PAUSE))
+            // 2. Move the blocked app off screen so it stops rendering
+            performGlobalAction(GLOBAL_ACTION_HOME)
+        }
+        // 3. Once it is in the background, end the process so nothing keeps playing
+        mainHandler.postDelayed({
+            val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            am.killBackgroundProcesses(packageName)
+        }, 900)
     }
 
     override fun onInterrupt() {
