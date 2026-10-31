@@ -1,0 +1,26 @@
+<resources>
+    <!-- Light Sanctuary Palette (Zen Nature) -->
+    <color name="sanctuary_cream">#FBF9F4</color>
+    <color name="sanctuary_surface">#F5F1E9</color>
+    <color name="sanctuary_surface_variant">#ECE6DC</color>
+    <color name="sanctuary_charcoal">#1D221E</color>
+    <color name="sanctuary_charcoal_muted">#5E655F</color>
+    
+    <!-- Organic Accents -->
+    <color name="sanctuary_sage">#879883</color>
+    <color name="sanctuary_sage_dark">#5C6D58</color>
+    <color name="sanctuary_olive">#6B7A62</color>
+    <color name="sanctuary_terracotta">#C57B63</color>
+    <color name="sanctuary_terracotta_soft">#E3ABA0</color>
+    <color name="sanctuary_sand">#E5DFD3</color>
+    
+    <!-- Night Mode Sanctuary Palette -->
+    <color name="sanctuary_night_bg">#121815</color>
+    <color name="sanctuary_night_surface">#1A221E</color>
+    <color name="sanctuary_night_surface_variant">#242E29</color>
+    <color name="sanctuary_night_text">#EBEAE5</color>
+
+    <!-- Launcher icon -->
+    <color name="ic_launcher_background">#70856E</color>
+</resources>
+

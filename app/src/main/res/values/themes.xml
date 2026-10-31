@@ -1,0 +1,19 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.SoulSpace" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/sanctuary_cream</item>
+        <item name="android:navigationBarColor">@color/sanctuary_cream</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
+    </style>
+
+    <style name="Theme.SoulSpace.Lockout" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowBackground">@color/sanctuary_cream</item>
+        <item name="android:statusBarColor">@color/sanctuary_cream</item>
+        <item name="android:navigationBarColor">@color/sanctuary_cream</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:showWhenLocked">true</item>
+        <item name="android:turnScreenOn">true</item>
+    </style>
+</resources>
+
