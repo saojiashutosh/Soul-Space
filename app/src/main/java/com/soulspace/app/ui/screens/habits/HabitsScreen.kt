@@ -1,5 +1,7 @@
 package com.soulspace.app.ui.screens.habits
 
+import com.soulspace.app.ui.components.EmptyHint
+import com.soulspace.app.ui.components.soulTextFieldColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -41,7 +43,7 @@ fun HabitsScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "HABIT SANCTUARY",
                     style = MaterialTheme.typography.labelSmall,
@@ -52,19 +54,20 @@ fun HabitsScreen(
                 Text(
                     text = "Mindful Rituals",
                     fontFamily = FontFamily.Serif,
-                    fontSize = 30.sp,
+                    fontSize = 26.sp,
                     color = CharcoalDeep
                 )
             }
 
             Button(
                 onClick = { showAddDialog = true },
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SagePrimary)
+                shape = CircleShape,
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = TerracottaClay, contentColor = Color.White)
             ) {
                 Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("New Ritual", fontSize = 12.sp)
+                Text("New Ritual", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
             }
         }
 
@@ -125,6 +128,14 @@ fun HabitsScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(bottom = 100.dp)
         ) {
+            if (uiState.habits.isEmpty()) {
+                item {
+                    EmptyHint(
+                        title = "No rituals yet",
+                        body = "Tap \u201cNew Ritual\u201d to add your first mindful habit."
+                    )
+                }
+            }
             items(uiState.habits, key = { it.habit.id }) { item ->
                 HabitCardItem(
                     item = item,
@@ -242,6 +253,8 @@ fun AddHabitDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SanctuarySurface,
+        titleContentColor = CharcoalDeep,
+        textContentColor = CharcoalMuted,
         title = { Text("New Mindful Ritual", fontFamily = FontFamily.Serif) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -250,14 +263,16 @@ fun AddHabitDialog(
                     onValueChange = { title = it },
                     label = { Text("Ritual Title (e.g. Read 15 mins)") },
                     shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = soulTextFieldColors()
                 )
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
                     label = { Text("Intention / Note") },
                     shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = soulTextFieldColors()
                 )
             }
         },
@@ -268,7 +283,8 @@ fun AddHabitDialog(
                         onAdd(title, description, category, null, null)
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = SagePrimary)
+                shape = CircleShape,
+                colors = ButtonDefaults.buttonColors(containerColor = SagePrimary, contentColor = Color.White)
             ) {
                 Text("Create Ritual", color = Color.White)
             }

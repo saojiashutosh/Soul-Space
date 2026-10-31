@@ -1,5 +1,7 @@
 package com.soulspace.app.ui.screens.focus
 
+import com.soulspace.app.ui.components.soulSwitchColors
+import com.soulspace.app.ui.components.SoulFilterChip
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -77,7 +79,7 @@ fun FocusScreen(
         // Preset Chips
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             listOf(
                 Triple("25/5", "25/5 Standard", 25),
@@ -85,18 +87,11 @@ fun FocusScreen(
                 Triple("90m", "90m Deep Work", 90),
                 Triple("15m", "15m Sprint", 15)
             ).forEach { (shortLabel, fullLabel, mins) ->
-                FilterChip(
+                SoulFilterChip(
                     selected = uiState.currentPreset == fullLabel,
+                    label = shortLabel,
                     onClick = { viewModel.selectPreset(fullLabel, mins) },
-                    label = { Text(shortLabel) },
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.padding(horizontal = 4.dp),
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = SagePrimary,
-                        selectedLabelColor = Color.White,
-                        containerColor = SanctuarySurface,
-                        labelColor = CharcoalDeep
-                    )
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -154,10 +149,15 @@ fun FocusScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 12.dp)
+                ) {
                     Icon(Icons.Rounded.Shield, contentDescription = null, tint = SageDark)
                     Spacer(modifier = Modifier.width(12.dp))
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Auto-Block Distractions",
                             style = MaterialTheme.typography.titleSmall,
@@ -173,10 +173,7 @@ fun FocusScreen(
                 Switch(
                     checked = uiState.autoBlockEnabled,
                     onCheckedChange = { viewModel.toggleAutoBlock(it) },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = SagePrimary
-                    )
+                    colors = soulSwitchColors()
                 )
             }
         }
@@ -206,7 +203,7 @@ fun FocusScreen(
                     if (uiState.isRunning) viewModel.pauseTimer() else viewModel.startTimer()
                 },
                 shape = CircleShape,
-                colors = ButtonDefaults.buttonColors(containerColor = SagePrimary),
+                colors = ButtonDefaults.buttonColors(containerColor = SagePrimary, contentColor = Color.White),
                 modifier = Modifier.size(76.dp)
             ) {
                 Icon(
