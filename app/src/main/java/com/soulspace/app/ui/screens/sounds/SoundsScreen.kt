@@ -1,10 +1,17 @@
 package com.soulspace.app.ui.screens.sounds
 
+import androidx.compose.ui.platform.LocalContext
+import android.app.Activity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -15,11 +22,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.soulspace.app.ui.components.SoulFilterChip
 import com.soulspace.app.ui.theme.*
+
+private const val MIX_SLOTS = 4
 
 @Composable
 fun SoundsScreen(
@@ -27,154 +40,312 @@ fun SoundsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val categories = listOf("Nature", "Focus", "Sleep", "Meditation")
+    val titleById = remember(uiState.sounds) { uiState.sounds.associate { it.id to it.title } }
+    val filteredSounds = uiState.sounds.filter { it.category == uiState.currentCategory }
 
-    Column(
+    // Leaving this tab stops the sounds. Rotation recreates the screen, so it is excluded.
+    val activity = LocalContext.current as? Activity
+    DisposableEffect(Unit) {
+        onDispose {
+            if (activity?.isChangingConfigurations != true) viewModel.stopAll()
+        }
+    }
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 100.dp),
         modifier = Modifier
             .fillMaxSize()
             .background(SanctuaryCream)
-            .padding(horizontal = 20.dp)
-            .padding(top = 24.dp)
     ) {
         // Header
-        Text(
-            text = "AUDIO SANCTUARY",
-            style = MaterialTheme.typography.labelSmall,
-            letterSpacing = 2.sp,
-            color = SageDark
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Ambient Soundscapes",
-            fontFamily = FontFamily.Serif,
-            fontSize = 30.sp,
-            color = CharcoalDeep
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Category Filter Chips
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            categories.forEach { cat ->
-                FilterChip(
-                    selected = uiState.currentCategory == cat,
-                    onClick = { viewModel.setCategory(cat) },
-                    label = { Text(cat) },
-                    shape = RoundedCornerShape(16.dp),
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = SagePrimary,
-                        selectedLabelColor = Color.White,
-                        containerColor = SanctuarySurface,
-                        labelColor = CharcoalDeep
-                    )
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Column {
+                Text(
+                    text = "AUDIO SANCTUARY",
+                    style = MaterialTheme.typography.labelSmall,
+                    letterSpacing = 2.sp,
+                    color = SageDark
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Ambient Soundscapes",
+                    fontFamily = FontFamily.Serif,
+                    fontSize = 30.sp,
+                    lineHeight = 36.sp,
+                    color = CharcoalDeep
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        // Mix: one vertical volume channel per playing sound
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            MixPanel(
+                playing = uiState.playing,
+                titleById = titleById,
+                onVolume = viewModel::setVolume,
+                onRemove = { id -> uiState.sounds.firstOrNull { it.id == id }?.let(viewModel::togglePlay) },
+                onReset = viewModel::stopAll
+            )
+        }
 
-        // Sleep Timer Quick Strip
-        Card(
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = SanctuarySurface),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+        // Sleep timer
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = SanctuarySurface),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Bedtime, contentDescription = null, tint = SageDark)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Sleep Timer",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = CharcoalDeep
-                    )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf(15, 30, 45, 60).forEach { mins ->
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = if (uiState.sleepTimerMinutes == mins) SagePrimary else SanctuarySurfaceVariant,
-                            modifier = Modifier.clip(RoundedCornerShape(10.dp))
-                        ) {
-                            TextButton(
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.Bedtime, contentDescription = null, tint = SageDark)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Sleep Timer",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = CharcoalDeep
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf(15, 30, 45, 60).forEach { mins ->
+                            SoulFilterChip(
+                                selected = uiState.sleepTimerMinutes == mins,
+                                label = "${mins}m",
                                 onClick = { viewModel.setSleepTimer(mins) },
-                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = "${mins}m",
-                                    fontSize = 12.sp,
-                                    color = if (uiState.sleepTimerMinutes == mins) Color.White else CharcoalDeep
-                                )
-                            }
+                                modifier = Modifier.weight(1f)
+                            )
                         }
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Sound Grid
-        val filteredSounds = uiState.sounds.filter { it.category == uiState.currentCategory }
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-            contentPadding = PaddingValues(bottom = 100.dp),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(filteredSounds, key = { it.id }) { sound ->
-                val isPlaying = uiState.currentPlayingId == sound.id
-
-                Card(
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (isPlaying) SageLight.copy(alpha = 0.6f) else SanctuarySurface
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(18.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        IconButton(
-                            onClick = { viewModel.togglePlay(sound) },
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(CircleShape)
-                                .background(if (isPlaying) SagePrimary else SanctuaryCream)
-                        ) {
-                            Icon(
-                                imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                                contentDescription = if (isPlaying) "Pause" else "Play",
-                                tint = if (isPlaying) Color.White else SageDark
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = sound.title,
-                            fontFamily = FontFamily.Serif,
-                            fontSize = 16.sp,
-                            color = CharcoalDeep
-                        )
-                        Text(
-                            text = if (isPlaying) "Playing now" else "Tap to play",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isPlaying) SageDark else CharcoalMuted
-                        )
-                    }
+        // Category chips
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                categories.forEach { cat ->
+                    SoulFilterChip(
+                        selected = uiState.currentCategory == cat,
+                        label = cat,
+                        onClick = { viewModel.setCategory(cat) },
+                        horizontalPadding = 10.dp
+                    )
                 }
+            }
+        }
+
+        // Sounds
+        items(filteredSounds, key = { it.id }) { sound ->
+            SoundTile(
+                title = sound.title,
+                isPlaying = uiState.playing.containsKey(sound.id),
+                onClick = { viewModel.togglePlay(sound) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun MixPanel(
+    playing: Map<String, Float>,
+    titleById: Map<String, String>,
+    onVolume: (String, Float) -> Unit,
+    onRemove: (String) -> Unit,
+    onReset: () -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = SanctuarySurface),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Your mix",
+                        fontFamily = FontFamily.Serif,
+                        fontSize = 18.sp,
+                        color = CharcoalDeep
+                    )
+                    Text(
+                        text = if (playing.isEmpty()) "Pick sounds below to start" else "Drag a channel up or down for volume",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = CharcoalMuted,
+                        maxLines = 1
+                    )
+                }
+                TextButton(onClick = onReset, enabled = playing.isNotEmpty()) {
+                    Text(
+                        text = "Reset",
+                        color = if (playing.isNotEmpty()) TerracottaClay else CharcoalMuted,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        softWrap = false
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 8.dp)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                playing.forEach { (id, volume) ->
+                    MixChannel(
+                        title = titleById[id] ?: id,
+                        volume = volume,
+                        onVolume = { onVolume(id, it) },
+                        onRemove = { onRemove(id) }
+                    )
+                }
+                repeat((MIX_SLOTS - playing.size).coerceAtLeast(0)) { EmptyChannel() }
             }
         }
     }
 }
 
+private val ChannelWidth = 62.dp
+private val ChannelHeight = 150.dp
+
+/** A vertical volume bar: tap or drag anywhere on it to set the level. */
+@Composable
+private fun MixChannel(
+    title: String,
+    volume: Float,
+    onVolume: (Float) -> Unit,
+    onRemove: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(ChannelWidth, ChannelHeight)
+            .clip(RoundedCornerShape(18.dp))
+            .background(SanctuaryCardBg)
+            .pointerInput(Unit) {
+                detectTapGestures { offset -> onVolume(1f - offset.y / size.height) }
+            }
+            .pointerInput(Unit) {
+                detectVerticalDragGestures { change, _ ->
+                    change.consume()
+                    onVolume(1f - change.position.y / size.height)
+                }
+            }
+    ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .fillMaxHeight(volume.coerceIn(0f, 1f))
+                .background(SagePrimary.copy(alpha = 0.45f))
+        )
+        Text(
+            text = title,
+            fontSize = 11.sp,
+            lineHeight = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = CharcoalDeep,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 8.dp)
+        )
+        Text(
+            text = "${(volume * 100).toInt()}%",
+            fontSize = 11.sp,
+            color = CharcoalDeep.copy(alpha = 0.7f),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 32.dp)
+        )
+        IconButton(
+            onClick = onRemove,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .size(32.dp)
+        ) {
+            Icon(
+                Icons.Rounded.Close,
+                contentDescription = "Remove $title",
+                tint = CharcoalDeep.copy(alpha = 0.7f),
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyChannel() {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(ChannelWidth, ChannelHeight)
+            .clip(RoundedCornerShape(18.dp))
+            .background(SanctuaryCardBg.copy(alpha = 0.5f))
+    ) {
+        Icon(Icons.Rounded.Add, contentDescription = null, tint = CharcoalDivider)
+    }
+}
+
+@Composable
+private fun SoundTile(
+    title: String,
+    isPlaying: Boolean,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isPlaying) SageLight.copy(alpha = 0.7f) else SanctuarySurface
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 118.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 6.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(46.dp)
+                    .clip(CircleShape)
+                    .background(if (isPlaying) SagePrimary else SanctuaryCream)
+            ) {
+                Icon(
+                    imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                    contentDescription = if (isPlaying) "Pause $title" else "Play $title",
+                    tint = if (isPlaying) Color.White else SageDark
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = title,
+                fontFamily = FontFamily.Serif,
+                fontSize = 13.sp,
+                lineHeight = 16.sp,
+                color = CharcoalDeep,
+                textAlign = TextAlign.Center,
+                minLines = 2,
+                maxLines = 2
+            )
+        }
+    }
+}
