@@ -84,6 +84,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         viewModelScope.launch {
+            // Water goal chosen on the hydration screen
+            prefs.userPreferencesFlow.collect { p ->
+                _uiState.update { it.copy(waterGoalMl = p.dailyWaterGoalMl) }
+            }
+        }
+
+        viewModelScope.launch {
             // Next Timetable Task
             db.timetableDao().getTasksForDate(todayString).collect { tasks ->
                 val upcoming = tasks.firstOrNull { !it.isCompleted }
