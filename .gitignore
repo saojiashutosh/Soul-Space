@@ -17,3 +17,6 @@ app/build/
 *.apk
 *.aab
 
+
+# Local AI/agent tooling config (contains API keys)
+.agents/
