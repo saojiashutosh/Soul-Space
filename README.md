@@ -149,3 +149,23 @@ SoulSpace is built to strictly comply with Google Play Developer Policies:
 * **Exact Alarms (`SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM`):** Used to ensure time-critical notifications (meditation alarms, habit reminders, timetable activities) fire reliably when the device is idle or in Doze mode.
 * **Safety Protocols:** System emergency calls (`911`, `112`, etc.), dialer applications, and critical system settings are never blocked.
 
+
+---
+
+## Building
+
+Open the project in Android Studio, or from a terminal with JDK 17 and the Android SDK (platform 34) installed:
+
+```
+./gradlew assembleDebug
+```
+
+Create a `local.properties` file with `sdk.dir=<path to your Android SDK>` if your IDE has not already done so.
+
+## Sound credits
+
+The ambient soundscapes are real recordings from Wikimedia Commons (public domain, CC0 or CC BY), trimmed and looped by `tools/fetch_real_sounds.py`. They are **not** covered by the MIT licence below; each keeps its own licence. See [`app/src/main/assets/soundscapes/CREDITS.md`](app/src/main/assets/soundscapes/CREDITS.md) for authors and sources.
+
+## License
+
+The source code is released under the [MIT License](LICENSE).
