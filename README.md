@@ -23,6 +23,7 @@ All core features are **100% free**, **offline-first**, and require **zero accou
   </tr>
   <tr>
     <td align="center"><img src="docs/screenshots/sleep.png" width="240" alt="Overnight restrictions"><br><sub><b>Overnight restrictions</b></sub></td>
+    <td align="center"><img src="docs/screenshots/lockout.png" width="240" alt="Lockout screen"><br><sub><b>Lockout screen</b></sub></td>
   </tr>
 </table>
 
