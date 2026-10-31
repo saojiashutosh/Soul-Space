@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.*
 import com.soulspace.app.data.preferences.UserPreferencesRepository
+import com.soulspace.app.service.SoundMixer
 import com.soulspace.app.ui.navigation.SoulSpaceAppShell
 import com.soulspace.app.ui.theme.SoulSpaceTheme
 
@@ -30,6 +31,12 @@ class MainActivity : ComponentActivity() {
                 SoulSpaceAppShell()
             }
         }
+    }
+
+    override fun onDestroy() {
+        // Leaving the app with Back (not a rotation) ends any soundscapes or meditation session.
+        if (isFinishing) SoundMixer.stopAll()
+        super.onDestroy()
     }
 }
 
