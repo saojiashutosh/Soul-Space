@@ -1,5 +1,11 @@
 package com.soulspace.app.ui.screens.meditation
 
+import com.soulspace.app.ui.screens.sounds.SoundCatalog
+import com.soulspace.app.service.SoundMixer
+import com.soulspace.app.service.AudioPlaybackService
+import androidx.core.content.ContextCompat
+import android.os.SystemClock
+import android.content.Intent
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,7 +24,9 @@ data class MeditationSession(
     val description: String,
     val durationMinutes: Int,
     val category: String, // Morning, Stress, Evening, Focus
-    val themeColorHex: Long
+    val themeColorHex: Long,
+    /** Background soundscape (SoundCatalog id) that plays for the length of the session. */
+    val soundId: String
 )
 
 data class MeditationUiState(
@@ -40,6 +48,19 @@ class MeditationViewModel(application: Application) : AndroidViewModel(applicati
 
     init {
         loadSessions()
+        // Credit mindful points when a session runs to its end (not when it is stopped early)
+        viewModelScope.launch {
+            var last: SoundMixer.Session? = null
+            SoundMixer.session.collect { current ->
+                val previous = last
+                if (previous != null && current == null &&
+                    SystemClock.elapsedRealtime() >= previous.endsAtElapsedMillis - 2_000
+                ) {
+                    prefs.addMindfulPoints((previous.totalMillis / 60_000L).toInt())
+                }
+                last = current
+            }
+        }
     }
 
     private fun loadSessions() {
@@ -50,7 +71,8 @@ class MeditationViewModel(application: Application) : AndroidViewModel(applicati
                 description = "Awaken gently and set calm intention for the day",
                 durationMinutes = 5,
                 category = "Morning",
-                themeColorHex = 0xFF8A9A86
+                themeColorHex = 0xFF8A9A86,
+                soundId = "s20"
             ),
             MeditationSession(
                 id = "m2",
@@ -58,7 +80,8 @@ class MeditationViewModel(application: Application) : AndroidViewModel(applicati
                 description = "Release somatic tension from shoulders and chest",
                 durationMinutes = 10,
                 category = "Stress",
-                themeColorHex = 0xFFC77A62
+                themeColorHex = 0xFFC77A62,
+                soundId = "s2"
             ),
             MeditationSession(
                 id = "m3",
@@ -66,7 +89,8 @@ class MeditationViewModel(application: Application) : AndroidViewModel(applicati
                 description = "Prepare nervous system for deep restorative sleep",
                 durationMinutes = 15,
                 category = "Evening",
-                themeColorHex = 0xFF536751
+                themeColorHex = 0xFF536751,
+                soundId = "s9"
             ),
             MeditationSession(
                 id = "m4",
@@ -74,10 +98,34 @@ class MeditationViewModel(application: Application) : AndroidViewModel(applicati
                 description = "Unstructured stillness with gentle Tibetan bowl chimes",
                 durationMinutes = 20,
                 category = "Focus",
-                themeColorHex = 0xFF67735E
+                themeColorHex = 0xFF67735E,
+                soundId = "s12"
             )
         )
         _uiState.update { it.copy(sessions = list) }
+    }
+
+    /** Plays the session's background sound with bell chimes at the start and end. */
+    fun startSession(session: MeditationSession) {
+        val app = getApplication<Application>()
+        val sound = SoundCatalog.byId(session.soundId) ?: return
+        SoundMixer.startSession(
+            context = app,
+            sessionId = session.id,
+            sessionTitle = session.title,
+            soundId = sound.id,
+            soundTitle = sound.title,
+            soundUri = sound.audioUri,
+            minutes = session.durationMinutes
+        )
+        ContextCompat.startForegroundService(
+            app,
+            Intent(app, AudioPlaybackService::class.java).setAction(AudioPlaybackService.ACTION_START)
+        )
+    }
+
+    fun stopSession() {
+        SoundMixer.stopAll()
     }
 
     fun startBreathingExercise(pattern: String = "4-4-6 Relax") {

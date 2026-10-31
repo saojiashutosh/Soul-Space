@@ -1,5 +1,10 @@
 package com.soulspace.app.ui.screens.meditation
 
+import androidx.compose.ui.platform.LocalContext
+import android.app.Activity
+import com.soulspace.app.service.SoundMixer
+import kotlinx.coroutines.delay
+import android.os.SystemClock
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,6 +36,15 @@ fun MeditationScreen(
     viewModel: MeditationViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val activeSession by SoundMixer.session.collectAsState()
+
+    // Leaving this screen ends a running session. Rotation recreates the screen, so it is excluded.
+    val activity = LocalContext.current as? Activity
+    DisposableEffect(Unit) {
+        onDispose {
+            if (activity?.isChangingConfigurations != true) viewModel.stopSession()
+        }
+    }
     var isBreathingActive by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -57,6 +71,11 @@ fun MeditationScreen(
             contentPadding = PaddingValues(bottom = 100.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
+            // Running guided session
+            activeSession?.let { running ->
+                item { ActiveSessionCard(session = running, onStop = viewModel::stopSession) }
+            }
+
             // Interactive Breathing Visualizer Card
             item {
                 Card(
@@ -144,10 +163,10 @@ fun MeditationScreen(
                                 }
                             },
                             shape = RoundedCornerShape(20.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = SagePrimary),
+                            colors = ButtonDefaults.buttonColors(containerColor = SagePrimary, contentColor = Color.White),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(50.dp)
+                                .heightIn(min = 50.dp)
                         ) {
                             Icon(
                                 if (isBreathingActive) Icons.Rounded.Stop else Icons.Rounded.PlayArrow,
@@ -156,8 +175,11 @@ fun MeditationScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = if (isBreathingActive) "End Breathing" else "Begin 3-Minute Breathing",
-                                style = MaterialTheme.typography.titleMedium,
+                                text = if (isBreathingActive) "End Breathing" else "Begin 3-Min Breathing",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontSize = 15.sp,
+                                maxLines = 1,
+                                softWrap = false,
                                 color = Color.White
                             )
                         }
@@ -189,7 +211,7 @@ fun MeditationScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
+                        Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
                                 color = Color(session.themeColorHex).copy(alpha = 0.2f)
@@ -215,14 +237,21 @@ fun MeditationScreen(
                             )
                         }
 
+                        val isRunning = activeSession?.id == session.id
                         IconButton(
-                            onClick = { /* Launch Session Playback */ },
+                            onClick = {
+                                if (isRunning) viewModel.stopSession() else viewModel.startSession(session)
+                            },
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
-                                .background(SagePrimary)
+                                .background(if (isRunning) TerracottaClay else SagePrimary)
                         ) {
-                            Icon(Icons.Rounded.PlayArrow, contentDescription = "Play", tint = Color.White)
+                            Icon(
+                                if (isRunning) Icons.Rounded.Stop else Icons.Rounded.PlayArrow,
+                                contentDescription = if (isRunning) "Stop session" else "Start session",
+                                tint = Color.White
+                            )
                         }
                     }
                 }
@@ -231,3 +260,73 @@ fun MeditationScreen(
     }
 }
 
+
+@Composable
+private fun ActiveSessionCard(
+    session: SoundMixer.Session,
+    onStop: () -> Unit
+) {
+    var now by remember(session) { mutableLongStateOf(SystemClock.elapsedRealtime()) }
+    LaunchedEffect(session) {
+        while (true) {
+            now = SystemClock.elapsedRealtime()
+            delay(1000)
+        }
+    }
+    val remaining = (session.endsAtElapsedMillis - now).coerceIn(0L, session.totalMillis)
+    val seconds = (remaining / 1000).toInt()
+    val progress = 1f - remaining.toFloat() / session.totalMillis.toFloat()
+
+    Card(
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = SageLight.copy(alpha = 0.7f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(
+                text = "SESSION IN PROGRESS",
+                style = MaterialTheme.typography.labelSmall,
+                color = SageDark,
+                letterSpacing = 1.sp
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = session.title,
+                fontFamily = FontFamily.Serif,
+                fontSize = 20.sp,
+                color = CharcoalDeep
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            LinearProgressIndicator(
+                progress = { progress.coerceIn(0f, 1f) },
+                color = SagePrimary,
+                trackColor = CharcoalDivider,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(CircleShape)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "%d:%02d left".format(seconds / 60, seconds % 60),
+                    fontFamily = FontFamily.Serif,
+                    fontSize = 22.sp,
+                    color = CharcoalDeep,
+                    modifier = Modifier.weight(1f)
+                )
+                Button(
+                    onClick = onStop,
+                    shape = CircleShape,
+                    contentPadding = PaddingValues(horizontal = 18.dp, vertical = 6.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = TerracottaClay, contentColor = Color.White)
+                ) {
+                    Text("End session", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+                }
+            }
+        }
+    }
+}
