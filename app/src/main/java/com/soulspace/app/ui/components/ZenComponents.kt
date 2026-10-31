@@ -1,5 +1,6 @@
 package com.soulspace.app.ui.components
 
+import androidx.compose.foundation.border
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -74,8 +75,11 @@ fun ZenMeditatingIcon(
     }
 }
 
+enum class CardMotif { Moon, Stones, Sun, Disc }
+
 /**
- * Aesthetic Category Card matching reference image (Sleep, Soothe, Unwind, Restore)
+ * Illustrated category card: flat sky, layered hills and a small motif,
+ * matching the Sleep / Soothe / Unwind / Restore reference.
  */
 @Composable
 fun SanctuaryCategoryCard(
@@ -83,80 +87,107 @@ fun SanctuaryCategoryCard(
     subtitle: String,
     backgroundColor: Color,
     accentColor: Color,
+    motif: CardMotif = CardMotif.Disc,
+    hillColor: Color = IllusRose,
     buttonText: String = "Start",
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+    Box(
         modifier = modifier
             .fillMaxWidth()
+            .height(96.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(backgroundColor)
             .clickable { onClick() }
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = title,
-                    fontFamily = FontFamily.Serif,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = CharcoalDeep
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = CharcoalMuted
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = Color.White.copy(alpha = 0.85f),
-                    modifier = Modifier.clickable { onClick() }
-                ) {
-                    Text(
-                        text = buttonText,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = CharcoalDeep,
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
-                    )
+        Canvas(modifier = Modifier.matchParentSize()) {
+            val w = size.width
+            val h = size.height
+
+            // Motif sits on the right, behind the hills
+            when (motif) {
+                CardMotif.Moon -> {
+                    drawCircle(Color(0xFFF1E3E0), radius = h * 0.26f, center = Offset(w * 0.86f, h * 0.36f))
+                    drawCircle(backgroundColor, radius = h * 0.22f, center = Offset(w * 0.83f, h * 0.30f))
+                }
+                CardMotif.Stones -> {
+                    val cx = w * 0.88f
+                    drawCircle(IllusPebbleDark, radius = h * 0.07f, center = Offset(cx, h * 0.14f))
+                    drawArc(accentColor, 0f, 180f, true, Offset(cx - h * 0.2f, h * 0.2f), Size(h * 0.4f, h * 0.34f))
+                    drawArc(IllusPebbleDark, 180f, 180f, true, Offset(cx - h * 0.26f, h * 0.5f), Size(h * 0.52f, h * 0.9f))
+                }
+                CardMotif.Sun -> {
+                    drawCircle(Color(0xFFE6B79A), radius = h * 0.24f, center = Offset(w * 0.86f, h * 0.38f))
+                }
+                CardMotif.Disc -> {
+                    drawCircle(IllusMint, radius = h * 0.32f, center = Offset(w * 0.86f, h * 0.45f))
                 }
             }
 
-            // Organic Graphic Accent (Pebbles & Crescent Moon)
-            Canvas(modifier = Modifier.size(64.dp)) {
-                val cw = size.width
-                val ch = size.height
+            // Back hill
+            drawPath(
+                Path().apply {
+                    moveTo(0f, h * 0.62f)
+                    cubicTo(w * 0.25f, h * 0.42f, w * 0.5f, h * 0.78f, w, h * 0.5f)
+                    lineTo(w, h); lineTo(0f, h); close()
+                },
+                color = IllusGrey.copy(alpha = if (motif == CardMotif.Moon) 0f else 0.85f)
+            )
+            // Front hill
+            drawPath(
+                Path().apply {
+                    moveTo(0f, h * 0.78f)
+                    cubicTo(w * 0.3f, h * 0.58f, w * 0.6f, h * 0.95f, w, h * 0.68f)
+                    lineTo(w, h); lineTo(0f, h); close()
+                },
+                color = hillColor
+            )
+        }
 
-                // Soft background wave
-                val wavePath = Path().apply {
-                    moveTo(0f, ch * 0.6f)
-                    cubicTo(cw * 0.3f, ch * 0.4f, cw * 0.7f, ch * 0.8f, cw, ch * 0.5f)
-                    lineTo(cw, ch)
-                    lineTo(0f, ch)
-                    close()
-                }
-                drawPath(wavePath, color = accentColor.copy(alpha = 0.4f))
-
-                // Balanced Zen Pebble
-                drawOval(
-                    color = accentColor,
-                    topLeft = Offset(cw * 0.35f, ch * 0.2f),
-                    size = Size(cw * 0.35f, ch * 0.28f)
-                )
-                drawOval(
-                    color = CharcoalDeep.copy(alpha = 0.75f),
-                    topLeft = Offset(cw * 0.25f, ch * 0.45f),
-                    size = Size(cw * 0.55f, ch * 0.24f)
+        Column(modifier = Modifier.padding(start = 16.dp, top = 12.dp)) {
+            Text(
+                text = title,
+                fontFamily = FontFamily.Serif,
+                fontSize = 20.sp,
+                color = CharcoalDeep
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.labelSmall,
+                color = CharcoalDeep.copy(alpha = 0.7f)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.9f)) {
+                Text(
+                    text = buttonText,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = CharcoalDeep,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                 )
             }
         }
+    }
+}
+
+/**
+ * Terracotta call-to-action pill, as in "Start Session".
+ */
+@Composable
+fun ClayButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        shape = CircleShape,
+        colors = ButtonDefaults.buttonColors(containerColor = TerracottaClay, contentColor = Color.White),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp)
+    ) {
+        Text(text, style = MaterialTheme.typography.labelLarge)
     }
 }
 
@@ -251,3 +282,133 @@ fun ScreenTimeBarChart(
     }
 }
 
+
+/**
+ * Explicit colours for every text input so text, label, cursor and border
+ * stay readable on the cream / beige surfaces.
+ */
+@Composable
+fun soulTextFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = CharcoalDeep,
+    unfocusedTextColor = CharcoalDeep,
+    disabledTextColor = CharcoalMuted,
+    focusedContainerColor = SanctuaryCardBg,
+    unfocusedContainerColor = SanctuaryCardBg,
+    focusedBorderColor = TerracottaClay,
+    unfocusedBorderColor = CharcoalDivider,
+    focusedLabelColor = TerracottaClay,
+    unfocusedLabelColor = CharcoalMuted,
+    focusedPlaceholderColor = CharcoalMuted,
+    unfocusedPlaceholderColor = CharcoalMuted,
+    focusedLeadingIconColor = CharcoalMuted,
+    unfocusedLeadingIconColor = CharcoalMuted,
+    cursorColor = TerracottaClay
+)
+
+/** Switch colours with a visible, light off-state on cream surfaces. */
+@Composable
+fun soulSwitchColors() = SwitchDefaults.colors(
+    checkedThumbColor = Color.White,
+    checkedTrackColor = SagePrimary,
+    checkedBorderColor = SagePrimary,
+    uncheckedThumbColor = Color.White,
+    uncheckedTrackColor = CharcoalDivider,
+    uncheckedBorderColor = CharcoalDivider
+)
+
+/**
+ * Pill filter chip: single-line, centered label and a soft border.
+ * Give it Modifier.weight(1f) to share a row evenly.
+ */
+@Composable
+fun SoulFilterChip(
+    selected: Boolean,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    horizontalPadding: androidx.compose.ui.unit.Dp = 14.dp
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .heightIn(min = 40.dp)
+            .clip(CircleShape)
+            .background(if (selected) SagePrimary else SanctuarySurface)
+            .border(1.dp, if (selected) SagePrimary else CharcoalDivider, CircleShape)
+            .clickable { onClick() }
+            .padding(horizontal = horizontalPadding, vertical = 8.dp)
+    ) {
+        Text(
+            text = label,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = if (selected) Color.White else CharcoalDeep,
+            maxLines = 1,
+            softWrap = false
+        )
+    }
+}
+
+/** Equal-width segmented tabs; labels never wrap. */
+@Composable
+fun SoulSegmentedTabs(
+    labels: List<String>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(CircleShape)
+            .background(SanctuarySurface)
+            .padding(4.dp)
+    ) {
+        labels.forEachIndexed { index, label ->
+            val selected = index == selectedIndex
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(CircleShape)
+                    .background(if (selected) SagePrimary else Color.Transparent)
+                    .clickable { onSelect(index) }
+                    .padding(vertical = 10.dp)
+            ) {
+                Text(
+                    text = label,
+                    fontSize = 13.sp,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                    color = if (selected) Color.White else CharcoalMuted,
+                    maxLines = 1,
+                    softWrap = false
+                )
+            }
+        }
+    }
+}
+
+/** Centered placeholder for lists with nothing in them yet. */
+@Composable
+fun EmptyHint(title: String, body: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = title,
+            fontFamily = FontFamily.Serif,
+            fontSize = 20.sp,
+            color = CharcoalDeep
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = body,
+            style = MaterialTheme.typography.bodySmall,
+            color = CharcoalMuted,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+    }
+}
