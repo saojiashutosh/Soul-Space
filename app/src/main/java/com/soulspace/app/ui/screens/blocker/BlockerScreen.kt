@@ -1,5 +1,10 @@
 package com.soulspace.app.ui.screens.blocker
 
+import com.soulspace.app.ui.components.soulSwitchColors
+import com.soulspace.app.ui.components.EmptyHint
+import com.soulspace.app.ui.components.SoulSegmentedTabs
+import com.soulspace.app.ui.components.SoulFilterChip
+import com.soulspace.app.ui.components.soulTextFieldColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -94,58 +99,26 @@ fun BlockerScreen(
                         }
                         Button(
                             onClick = { PermissionManager.openAccessibilitySettings(context) },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = TerracottaClay)
+                            shape = CircleShape,
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = TerracottaClay, contentColor = Color.White)
                         ) {
-                            Text("Enable", color = Color.White, fontSize = 12.sp)
+                            Text("Enable", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
                         }
                     }
                 }
             }
 
-            // Tab Row
-            TabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = SanctuarySurface,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp)),
-                indicator = {}
-            ) {
-                Tab(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    text = {
-                        Text(
-                            "Apps (${uiState.installedApps.count { it.isBlocked }})",
-                            color = if (selectedTab == 0) SageDark else CharcoalMuted,
-                            fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal
-                        )
-                    }
-                )
-                Tab(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    text = {
-                        Text(
-                            "Schedules",
-                            color = if (selectedTab == 1) SageDark else CharcoalMuted,
-                            fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal
-                        )
-                    }
-                )
-                Tab(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
-                    text = {
-                        Text(
-                            "Commitment",
-                            color = if (selectedTab == 2) SageDark else CharcoalMuted,
-                            fontWeight = if (selectedTab == 2) FontWeight.Bold else FontWeight.Normal
-                        )
-                    }
-                )
-            }
+            // Tabs
+            SoulSegmentedTabs(
+                labels = listOf(
+                    "Apps (${uiState.installedApps.count { it.isBlocked }})",
+                    "Schedules",
+                    "Commitment"
+                ),
+                selectedIndex = selectedTab,
+                onSelect = { selectedTab = it }
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -164,15 +137,11 @@ fun BlockerScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         listOf(15 to "15m", 30 to "30m", 60 to "1h", 120 to "2h", 240 to "4h").forEach { (mins, label) ->
-                            FilterChip(
+                            SoulFilterChip(
                                 selected = false,
+                                label = label,
                                 onClick = { viewModel.startTemporaryBlock(mins, "Quick Block ($label)") },
-                                label = { Text(label, fontSize = 12.sp) },
-                                shape = RoundedCornerShape(14.dp),
-                                colors = FilterChipDefaults.filterChipColors(
-                                    containerColor = SanctuarySurface,
-                                    labelColor = CharcoalDeep
-                                )
+                                modifier = Modifier.weight(1f)
                             )
                         }
                     }
@@ -187,12 +156,7 @@ fun BlockerScreen(
                         leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = CharcoalMuted) },
                         shape = RoundedCornerShape(20.dp),
                         modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = SanctuarySurface,
-                            unfocusedContainerColor = SanctuarySurface,
-                            focusedBorderColor = SagePrimary,
-                            unfocusedBorderColor = Color.Transparent
-                        ),
+                        colors = soulTextFieldColors(),
                         singleLine = true
                     )
 
@@ -245,10 +209,7 @@ fun BlockerScreen(
                                             onCheckedChange = { isChecked ->
                                                 viewModel.toggleAppBlocked(appItem.packageName, appItem.appName, isChecked)
                                             },
-                                            colors = SwitchDefaults.colors(
-                                                checkedThumbColor = Color.White,
-                                                checkedTrackColor = SagePrimary
-                                            )
+                                            colors = soulSwitchColors()
                                         )
                                     }
                                 }
@@ -268,16 +229,18 @@ fun BlockerScreen(
                             text = "AUTOMATED SCHEDULES",
                             style = MaterialTheme.typography.labelSmall,
                             color = SageDark,
-                            letterSpacing = 1.sp
+                            letterSpacing = 1.sp,
+                            modifier = Modifier.weight(1f)
                         )
                         Button(
                             onClick = { showAddScheduleDialog = true },
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = SagePrimary)
+                            shape = CircleShape,
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = TerracottaClay, contentColor = Color.White)
                         ) {
                             Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("New Schedule", fontSize = 12.sp)
+                            Text("New Schedule", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
                         }
                     }
 
@@ -288,6 +251,14 @@ fun BlockerScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                         contentPadding = PaddingValues(bottom = 80.dp)
                     ) {
+                        if (uiState.schedules.isEmpty()) {
+                            item {
+                                EmptyHint(
+                                    title = "No schedules yet",
+                                    body = "Tap \u201cNew Schedule\u201d to block distracting apps automatically."
+                                )
+                            }
+                        }
                         items(uiState.schedules) { schedule ->
                             ScheduleCard(
                                 schedule = schedule,
@@ -356,10 +327,7 @@ fun ScheduleCard(
                 Switch(
                     checked = schedule.isActive,
                     onCheckedChange = { onToggleActive() },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = SagePrimary
-                    )
+                    colors = soulSwitchColors()
                 )
             }
             Spacer(modifier = Modifier.height(10.dp))
@@ -482,17 +450,11 @@ fun CommitmentModeTab(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 listOf(2 to "2h", 4 to "4h", 8 to "8h", 12 to "12h", 24 to "24h").forEach { (hrs, label) ->
-                    FilterChip(
+                    SoulFilterChip(
                         selected = selectedHours == hrs,
+                        label = label,
                         onClick = { selectedHours = hrs },
-                        label = { Text(label) },
-                        shape = RoundedCornerShape(16.dp),
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = SagePrimary,
-                            selectedLabelColor = Color.White,
-                            containerColor = SanctuarySurface,
-                            labelColor = CharcoalDeep
-                        )
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -502,7 +464,7 @@ fun CommitmentModeTab(
             Button(
                 onClick = { showConfirmDialog = true },
                 shape = RoundedCornerShape(22.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SageDark),
+                colors = ButtonDefaults.buttonColors(containerColor = SageDark, contentColor = Color.White),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
@@ -517,6 +479,8 @@ fun CommitmentModeTab(
             AlertDialog(
                 onDismissRequest = { showConfirmDialog = false },
                 containerColor = SanctuarySurface,
+                titleContentColor = CharcoalDeep,
+                textContentColor = CharcoalMuted,
                 title = { Text("Confirm Commitment", fontFamily = FontFamily.Serif) },
                 text = {
                     Text(
@@ -531,7 +495,8 @@ fun CommitmentModeTab(
                             showConfirmDialog = false
                             onActivate(selectedHours)
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = SagePrimary)
+                        shape = CircleShape,
+                colors = ButtonDefaults.buttonColors(containerColor = SagePrimary, contentColor = Color.White)
                     ) {
                         Text("I Commit", color = Color.White)
                     }
@@ -561,6 +526,8 @@ fun AddScheduleDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SanctuarySurface,
+        titleContentColor = CharcoalDeep,
+        textContentColor = CharcoalMuted,
         title = { Text("Create Block Schedule", fontFamily = FontFamily.Serif) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -569,7 +536,8 @@ fun AddScheduleDialog(
                     onValueChange = { title = it },
                     label = { Text("Schedule Title") },
                     shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = soulTextFieldColors()
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -580,15 +548,17 @@ fun AddScheduleDialog(
                         onValueChange = {},
                         label = { Text("Start Time") },
                         readOnly = true,
-                        modifier = Modifier.weight(1f)
-                    )
+                        modifier = Modifier.weight(1f),
+                    colors = soulTextFieldColors()
+                )
                     OutlinedTextField(
                         value = String.format("%02d:%02d", endHour, endMinute),
                         onValueChange = {},
                         label = { Text("End Time") },
                         readOnly = true,
-                        modifier = Modifier.weight(1f)
-                    )
+                        modifier = Modifier.weight(1f),
+                    colors = soulTextFieldColors()
+                )
                 }
                 Text("Mode: $mode", style = MaterialTheme.typography.labelMedium, color = SageDark)
             }
@@ -596,7 +566,8 @@ fun AddScheduleDialog(
         confirmButton = {
             Button(
                 onClick = { onAdd(title, startHour, startMinute, endHour, endMinute, mode) },
-                colors = ButtonDefaults.buttonColors(containerColor = SagePrimary)
+                shape = CircleShape,
+                colors = ButtonDefaults.buttonColors(containerColor = SagePrimary, contentColor = Color.White)
             ) {
                 Text("Save Schedule", color = Color.White)
             }

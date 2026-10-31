@@ -206,7 +206,7 @@ fun LockoutScreen(
                 Button(
                     onClick = { showBreathingExercise = true },
                     shape = RoundedCornerShape(20.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = SagePrimary),
+                    colors = ButtonDefaults.buttonColors(containerColor = SagePrimary, contentColor = Color.White),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(54.dp)
@@ -387,7 +387,7 @@ fun EmergencyDelayDialog(
             Button(
                 onClick = onConfirmed,
                 enabled = delaySeconds == 0,
-                colors = ButtonDefaults.buttonColors(containerColor = TerracottaClay)
+                colors = ButtonDefaults.buttonColors(containerColor = TerracottaClay, contentColor = Color.White)
             ) {
                 Text("Unlock for 5 Mins", color = Color.White)
             }
