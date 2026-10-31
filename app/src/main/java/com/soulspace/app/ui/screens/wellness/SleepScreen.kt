@@ -1,5 +1,18 @@
 package com.soulspace.app.ui.screens.wellness
 
+import java.util.Locale
+import java.util.Calendar
+import com.soulspace.app.util.ScheduleRules
+import com.soulspace.app.util.PermissionManager
+import com.soulspace.app.ui.components.DaySelector
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.Lifecycle
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.clickable
+import android.content.Context
+import android.app.TimePickerDialog
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.background
@@ -26,6 +39,18 @@ fun SleepScreen(
     viewModel: SleepViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    // Re-check accessibility when coming back from the system settings screen
+    var accessibilityOn by remember { mutableStateOf(PermissionManager.isAccessibilityServiceEnabled(context)) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) accessibilityOn = PermissionManager.isAccessibilityServiceEnabled(context)
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     Scaffold(
         containerColor = SanctuaryCream,
@@ -71,7 +96,12 @@ fun SleepScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceAround
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.clip(RoundedCornerShape(12.dp)).clickable {
+                                    pickTime(context, uiState.bedtimeHour, uiState.bedtimeMinute, viewModel::setBedtime)
+                                }
+                            ) {
                                 Text("BEDTIME", style = MaterialTheme.typography.labelSmall, color = SageDark)
                                 Text(
                                     text = String.format("%02d:%02d", uiState.bedtimeHour, uiState.bedtimeMinute),
@@ -80,7 +110,12 @@ fun SleepScreen(
                                     color = CharcoalDeep
                                 )
                             }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.clip(RoundedCornerShape(12.dp)).clickable {
+                                    pickTime(context, uiState.wakeHour, uiState.wakeMinute, viewModel::setWakeTime)
+                                }
+                            ) {
                                 Text("WAKE UP", style = MaterialTheme.typography.labelSmall, color = SageDark)
                                 Text(
                                     text = String.format("%02d:%02d", uiState.wakeHour, uiState.wakeMinute),
@@ -94,35 +129,87 @@ fun SleepScreen(
                 }
             }
 
-            // Night App Blocker Link
+            // Overnight app restrictions: Start / Stop and the days it runs
             item {
+                val schedule = uiState.schedule
+                val running = schedule?.isActive == true
+                val mask = schedule?.daysOfWeekMask ?: ScheduleRules.ALL_DAYS
+                val blockingNow = schedule != null && ScheduleRules.isActiveAt(schedule, Calendar.getInstance())
+                val window = "${formatClock(uiState.bedtimeHour, uiState.bedtimeMinute)} — ${formatClock(uiState.wakeHour, uiState.wakeMinute)}"
+
                 Card(
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = SageLight.copy(alpha = 0.5f)),
+                    colors = CardDefaults.cardColors(containerColor = if (running) SageLight.copy(alpha = 0.7f) else SageLight.copy(alpha = 0.4f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(18.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Rounded.ShieldMoon, contentDescription = null, tint = SageDark)
                             Spacer(modifier = Modifier.width(12.dp))
-                            Column {
-                                Text("Overnight Restrictions", style = MaterialTheme.typography.titleSmall, color = CharcoalDeep, maxLines = 1)
-                                Text("11:00 PM — 7:00 AM", style = MaterialTheme.typography.bodySmall, color = CharcoalMuted, maxLines = 1)
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Overnight App Restrictions", style = MaterialTheme.typography.titleSmall, color = CharcoalDeep)
+                                Text(
+                                    text = when {
+                                        blockingNow -> "Blocking right now"
+                                        running -> "On · $window"
+                                        else -> "Off · $window"
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (blockingNow) TerracottaClay else CharcoalMuted
+                                )
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("REPEATS ON", style = MaterialTheme.typography.labelSmall, color = SageDark, letterSpacing = 1.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        DaySelector(mask = mask, onMaskChange = viewModel::setDays)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = ScheduleRules.daysSummary(mask) + if (mask != 0 && mask != ScheduleRules.ALL_DAYS) " · other nights are free" else "",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = CharcoalMuted
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
                         Button(
-                            onClick = onNavigateToBlocker,
+                            onClick = { if (running) viewModel.stop() else viewModel.start() },
+                            enabled = running || mask != 0,
                             shape = CircleShape,
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = SageDark, contentColor = Color.White)
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (running) SanctuarySurfaceVariant else TerracottaClay,
+                                contentColor = if (running) CharcoalDeep else Color.White
+                            ),
+                            modifier = Modifier.fillMaxWidth().height(50.dp)
                         ) {
-                            Text("Manage", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+                            Icon(if (running) Icons.Rounded.Stop else Icons.Rounded.PlayArrow, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(if (running) "Stop" else "Start", style = MaterialTheme.typography.labelLarge)
+                        }
+
+                        if (running && !accessibilityOn) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Accessibility is off, so apps can't be blocked yet.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TerracottaClay
+                            )
+                            TextButton(onClick = { PermissionManager.openAccessibilitySettings(context) }) {
+                                Text("Turn on", color = TerracottaClay, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = if (uiState.restrictedAppCount == 0) "No apps chosen yet" else "${uiState.restrictedAppCount} apps restricted",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (uiState.restrictedAppCount == 0) TerracottaClay else CharcoalMuted,
+                                modifier = Modifier.weight(1f)
+                            )
+                            TextButton(onClick = onNavigateToBlocker) {
+                                Text("Choose apps", color = SageDark, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+                            }
                         }
                     }
                 }
@@ -167,4 +254,13 @@ fun SleepScreen(
             }
         }
     }
+}
+
+private fun pickTime(context: Context, hour: Int, minute: Int, onPicked: (Int, Int) -> Unit) {
+    TimePickerDialog(context, { _, h, m -> onPicked(h, m) }, hour, minute, false).show()
+}
+
+private fun formatClock(hour: Int, minute: Int): String {
+    val h12 = if (hour % 12 == 0) 12 else hour % 12
+    return String.format(Locale.getDefault(), "%d:%02d %s", h12, minute, if (hour < 12) "AM" else "PM")
 }

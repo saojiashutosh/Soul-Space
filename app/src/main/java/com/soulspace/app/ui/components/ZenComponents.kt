@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.soulspace.app.ui.theme.*
+import com.soulspace.app.util.ScheduleRules
 
 /**
  * Zen Continuous-Line Meditating Figure
@@ -410,5 +411,39 @@ fun EmptyHint(title: String, body: String, modifier: Modifier = Modifier) {
             color = CharcoalMuted,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
+    }
+}
+
+/** Seven round S M T W T F S toggles for choosing the days a schedule runs. */
+@Composable
+fun DaySelector(
+    mask: Int,
+    onMaskChange: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        ScheduleRules.dayLetters.forEachIndexed { index, letter ->
+            val selected = mask and (1 shl index) != 0
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .aspectRatio(1f)
+                    .clip(CircleShape)
+                    .background(if (selected) SagePrimary else SanctuaryCardBg)
+                    .border(1.dp, if (selected) SagePrimary else CharcoalDivider, CircleShape)
+                    .clickable { onMaskChange(mask xor (1 shl index)) }
+            ) {
+                Text(
+                    text = letter,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (selected) Color.White else CharcoalDeep
+                )
+            }
+        }
     }
 }

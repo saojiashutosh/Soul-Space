@@ -181,6 +181,7 @@ fun LockoutScreen(
                             Text(
                                 text = reason,
                                 style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Center,
                                 color = CharcoalMuted
                             )
                         }
