@@ -64,3 +64,4 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 }
+

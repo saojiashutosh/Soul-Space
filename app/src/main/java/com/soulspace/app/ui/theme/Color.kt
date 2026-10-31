@@ -32,3 +32,4 @@ val NightCardBg = Color(0xFF1E2723)
 val NightTextPrimary = Color(0xFFECEAE4)
 val NightTextSecondary = Color(0xFF9EA7A1)
 val NightAccent = Color(0xFF8FA88C)
+

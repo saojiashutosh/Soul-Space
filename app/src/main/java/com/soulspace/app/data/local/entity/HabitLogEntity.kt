@@ -16,3 +16,4 @@ data class HabitLogEntity(
     val isCompleted: Boolean = true,
     val completedAt: Long = System.currentTimeMillis()
 )
+

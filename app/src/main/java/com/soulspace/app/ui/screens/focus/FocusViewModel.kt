@@ -128,3 +128,4 @@ class FocusViewModel(application: Application) : AndroidViewModel(application) {
         timerJob?.cancel()
     }
 }
+

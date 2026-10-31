@@ -44,3 +44,4 @@ interface BlockerDao {
     @Delete
     suspend fun deleteSchedule(schedule: BlockScheduleEntity)
 }
+

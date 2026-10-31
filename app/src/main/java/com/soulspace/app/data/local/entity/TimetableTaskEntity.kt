@@ -18,3 +18,4 @@ data class TimetableTaskEntity(
     val reminderEnabled: Boolean = true,
     val category: String = "Productivity" // Routine, Work, Wellness, Rest
 )
+

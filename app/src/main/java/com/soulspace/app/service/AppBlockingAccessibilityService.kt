@@ -162,3 +162,4 @@ class AppBlockingAccessibilityService : AccessibilityService() {
         serviceScope.cancel()
     }
 }
+

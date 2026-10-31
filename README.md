@@ -148,3 +148,4 @@ SoulSpace is built to strictly comply with Google Play Developer Policies:
 * **Usage Stats (`PACKAGE_USAGE_STATS`):** Required exclusively for compiling on-device screen time analytics.
 * **Exact Alarms (`SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM`):** Used to ensure time-critical notifications (meditation alarms, habit reminders, timetable activities) fire reliably when the device is idle or in Doze mode.
 * **Safety Protocols:** System emergency calls (`911`, `112`, etc.), dialer applications, and critical system settings are never blocked.
+

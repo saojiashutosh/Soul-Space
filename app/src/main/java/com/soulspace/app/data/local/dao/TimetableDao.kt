@@ -24,3 +24,4 @@ interface TimetableDao {
     @Delete
     suspend fun deleteTask(task: TimetableTaskEntity)
 }
+

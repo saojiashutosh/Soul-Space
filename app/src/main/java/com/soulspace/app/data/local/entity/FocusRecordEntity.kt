@@ -13,3 +13,4 @@ data class FocusRecordEntity(
     val completedAt: Long = System.currentTimeMillis(),
     val wasAutoBlockEnabled: Boolean = false
 )
+

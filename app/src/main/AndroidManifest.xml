@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.soulspace.app">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Screen Time & App Restriction Permissions -->
     <uses-permission
@@ -51,7 +50,6 @@
             android:exported="false"
             android:excludeFromRecents="true"
             android:launchMode="singleTask"
-            android:showOnLockScreen="true"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:theme="@style/Theme.SoulSpace.Lockout" />
@@ -83,7 +81,7 @@
         <!-- Broadcast Receivers -->
         <receiver
             android:name=".service.BootCompletedReceiver"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
@@ -98,3 +96,4 @@
     </application>
 
 </manifest>
+

@@ -1,6 +1,5 @@
 package com.soulspace.app.ui.screens.wellness
 
-import android.app.Application
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,54 +14,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.soulspace.app.data.preferences.UserPreferencesRepository
 import com.soulspace.app.ui.theme.*
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-
-data class SleepUiState(
-    val bedtimeHour: Int = 23,
-    val bedtimeMinute: Int = 0,
-    val wakeHour: Int = 7,
-    val wakeMinute: Int = 0,
-    val checklist: List<Pair<String, Boolean>> = listOf(
-        "Put phone away outside bedroom" to true,
-        "Dim warm room lighting" to true,
-        "5 minutes soothing breath pacer" to false,
-        "Listen to gentle night soundscape" to false
-    )
-)
-
-class SleepViewModel(application: Application) : AndroidViewModel(application) {
-    private val prefs = UserPreferencesRepository(application)
-    private val _uiState = MutableStateFlow(SleepUiState())
-    val uiState: StateFlow<SleepUiState> = _uiState.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            prefs.userPreferencesFlow.collect { p ->
-                _uiState.update {
-                    it.copy(
-                        bedtimeHour = p.bedtimeHour,
-                        bedtimeMinute = p.bedtimeMinute,
-                        wakeHour = p.wakeHour,
-                        wakeMinute = p.wakeMinute
-                    )
-                }
-            }
-        }
-    }
-
-    fun toggleChecklistItem(index: Int) {
-        val current = _uiState.value.checklist.toMutableList()
-        val item = current[index]
-        current[index] = item.copy(second = !item.second)
-        _uiState.update { it.copy(checklist = current) }
-    }
-}
 
 @Composable
 fun SleepScreen(
@@ -193,7 +146,7 @@ fun SleepScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
                             checked = isDone,

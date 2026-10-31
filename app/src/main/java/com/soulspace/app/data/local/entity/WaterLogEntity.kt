@@ -11,3 +11,4 @@ data class WaterLogEntity(
     val amountMl: Int,
     val timestamp: Long = System.currentTimeMillis()
 )
+

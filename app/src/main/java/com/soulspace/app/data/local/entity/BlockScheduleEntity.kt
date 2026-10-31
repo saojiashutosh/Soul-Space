@@ -17,3 +17,4 @@ data class BlockScheduleEntity(
     val isCommitmentMode: Boolean = false,
     val modeName: String = "Focus" // Study, Work, Sleep, Meditation, Custom
 )
+

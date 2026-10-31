@@ -2,6 +2,7 @@ package com.soulspace.app
 
 import android.app.Application
 import com.soulspace.app.data.local.SoulSpaceDatabase
+import com.soulspace.app.service.DailyResetWorker
 import com.soulspace.app.util.NotificationHelper
 
 class SoulSpaceApp : Application() {
@@ -11,5 +12,8 @@ class SoulSpaceApp : Application() {
         NotificationHelper.createNotificationChannels(this)
         // Warm up Database
         SoulSpaceDatabase.getDatabase(this)
+        // Schedule Daily Maintenance & Reset Worker
+        DailyResetWorker.schedule(this)
     }
 }
+

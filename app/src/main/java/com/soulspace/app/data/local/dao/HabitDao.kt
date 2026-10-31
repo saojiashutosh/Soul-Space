@@ -10,6 +10,9 @@ interface HabitDao {
     @Query("SELECT * FROM habits WHERE isArchived = 0 ORDER BY id ASC")
     fun getAllHabits(): Flow<List<HabitEntity>>
 
+    @Query("SELECT * FROM habits WHERE id = :id LIMIT 1")
+    suspend fun getHabitById(id: Long): HabitEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertHabit(habit: HabitEntity): Long
 
@@ -32,3 +35,4 @@ interface HabitDao {
     @Query("DELETE FROM habit_logs WHERE habitId = :habitId AND dateString = :dateString")
     suspend fun removeLog(habitId: Long, dateString: String)
 }
+

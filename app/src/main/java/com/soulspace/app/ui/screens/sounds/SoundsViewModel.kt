@@ -2,6 +2,7 @@ package com.soulspace.app.ui.screens.sounds
 
 import android.app.Application
 import android.content.Intent
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import com.soulspace.app.service.AudioPlaybackService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -79,7 +80,7 @@ class SoundsViewModel(application: Application) : AndroidViewModel(application) 
                 putExtra(AudioPlaybackService.EXTRA_SOUND_URI, sound.audioUri)
                 putExtra(AudioPlaybackService.EXTRA_SOUND_TITLE, sound.title)
             }
-            app.startService(intent)
+            ContextCompat.startForegroundService(app, intent)
         }
     }
 
@@ -93,3 +94,4 @@ class SoundsViewModel(application: Application) : AndroidViewModel(application) 
         app.startService(intent)
     }
 }
+

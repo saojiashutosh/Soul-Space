@@ -20,3 +20,4 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector?
     object Sleep : Screen("sleep", "Sleep Schedule")
     object Analytics : Screen("analytics", "Screen Time")
 }
+

@@ -204,3 +204,4 @@ class BlockerViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 }
+

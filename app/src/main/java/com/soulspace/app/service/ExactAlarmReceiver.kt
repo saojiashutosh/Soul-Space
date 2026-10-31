@@ -22,19 +22,19 @@ class ExactAlarmReceiver : BroadcastReceiver() {
             channelId = NotificationHelper.CHANNEL_REMINDERS
         )
 
-        // Reschedule for the next day to maintain exact 24h recurrence
-        val calendar = Calendar.getInstance()
-        val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        val minute = calendar.get(Calendar.MINUTE)
+        // Reschedule for the next day to maintain exact 24h recurrence without time drift
+        val originalHour = intent.getIntExtra("hour", Calendar.getInstance().get(Calendar.HOUR_OF_DAY))
+        val originalMinute = intent.getIntExtra("minute", Calendar.getInstance().get(Calendar.MINUTE))
 
         NotificationHelper.scheduleDailyExactAlarm(
             context = context,
             requestCode = requestCode,
-            hour = hour,
-            minute = minute,
+            hour = originalHour,
+            minute = originalMinute,
             title = title,
             message = message,
             category = category
         )
     }
 }
+

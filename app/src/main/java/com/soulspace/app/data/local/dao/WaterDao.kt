@@ -18,3 +18,4 @@ interface WaterDao {
     @Query("DELETE FROM water_logs WHERE id = (SELECT id FROM water_logs WHERE dateString = :dateString ORDER BY id DESC LIMIT 1)")
     suspend fun removeLastEntry(dateString: String)
 }
+

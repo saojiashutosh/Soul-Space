@@ -78,7 +78,7 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
                     HabitLogEntity(habitId = habitId, dateString = todayString, isCompleted = true)
                 )
                 // Update streak in HabitEntity
-                val habit = db.habitDao().getAllHabits().first().firstOrNull { it.id == habitId }
+                val habit = db.habitDao().getHabitById(habitId)
                 if (habit != null) {
                     val newStreak = habit.streakCount + 1
                     val newBest = maxOf(newStreak, habit.bestStreak)
@@ -87,7 +87,7 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
                 prefs.addMindfulPoints(10)
             } else {
                 db.habitDao().removeLog(habitId, todayString)
-                val habit = db.habitDao().getAllHabits().first().firstOrNull { it.id == habitId }
+                val habit = db.habitDao().getHabitById(habitId)
                 if (habit != null && habit.streakCount > 0) {
                     db.habitDao().updateHabit(habit.copy(streakCount = habit.streakCount - 1))
                 }
@@ -128,3 +128,4 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 }
+

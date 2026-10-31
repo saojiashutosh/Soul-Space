@@ -15,3 +15,4 @@ interface FocusDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRecord(record: FocusRecordEntity): Long
 }
+

@@ -69,6 +69,8 @@ object NotificationHelper {
             putExtra("message", message)
             putExtra("category", category)
             putExtra("requestCode", requestCode)
+            putExtra("hour", hour)
+            putExtra("minute", minute)
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
@@ -132,3 +134,4 @@ object NotificationHelper {
         manager.notify(id, builder.build())
     }
 }
+

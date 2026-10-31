@@ -18,3 +18,4 @@ data class HabitEntity(
     val isArchived: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 )
+

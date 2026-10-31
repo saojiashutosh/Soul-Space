@@ -1,6 +1,5 @@
 package com.soulspace.app.ui.screens.wellness
 
-import android.app.Application
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -8,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -16,7 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -24,64 +21,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.soulspace.app.data.local.SoulSpaceDatabase
-import com.soulspace.app.data.local.entity.WaterLogEntity
-import com.soulspace.app.data.preferences.UserPreferencesRepository
 import com.soulspace.app.ui.theme.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
-
-data class WaterUiState(
-    val currentIntakeMl: Int = 0,
-    val targetGoalMl: Int = 2000,
-    val logs: List<WaterLogEntity> = emptyList()
-)
-
-class WaterViewModel(application: Application) : AndroidViewModel(application) {
-    private val db = SoulSpaceDatabase.getDatabase(application)
-    private val prefs = UserPreferencesRepository(application)
-    private val todayString = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-
-    private val _uiState = MutableStateFlow(WaterUiState())
-    val uiState: StateFlow<WaterUiState> = _uiState.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            prefs.userPreferencesFlow.collect { p ->
-                _uiState.update { it.copy(targetGoalMl = p.dailyWaterGoalMl) }
-            }
-        }
-        viewModelScope.launch {
-            db.waterDao().getTotalWaterForDate(todayString).collect { total ->
-                _uiState.update { it.copy(currentIntakeMl = total ?: 0) }
-            }
-        }
-        viewModelScope.launch {
-            db.waterDao().getLogsForDate(todayString).collect { list ->
-                _uiState.update { it.copy(logs = list.reversed()) }
-            }
-        }
-    }
-
-    fun addWater(amountMl: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            db.waterDao().logWater(WaterLogEntity(dateString = todayString, amountMl = amountMl))
-            prefs.addMindfulPoints(5)
-        }
-    }
-
-    fun undoLast() {
-        viewModelScope.launch(Dispatchers.IO) {
-            db.waterDao().removeLastEntry(todayString)
-        }
-    }
-}
 
 @Composable
 fun WaterTrackerScreen(

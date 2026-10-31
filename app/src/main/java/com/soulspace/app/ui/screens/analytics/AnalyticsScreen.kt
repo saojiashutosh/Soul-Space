@@ -219,3 +219,4 @@ fun CategoryPill(title: String, mins: Long, color: Color, modifier: Modifier = M
         }
     }
 }
+
