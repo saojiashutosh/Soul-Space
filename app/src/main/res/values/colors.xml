@@ -19,5 +19,8 @@
     <color name="sanctuary_night_surface">#1A221E</color>
     <color name="sanctuary_night_surface_variant">#242E29</color>
     <color name="sanctuary_night_text">#EBEAE5</color>
+
+    <!-- Launcher icon -->
+    <color name="ic_launcher_background">#70856E</color>
 </resources>
 
