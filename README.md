@@ -21,6 +21,9 @@ All core features are **100% free**, **offline-first**, and require **zero accou
     <td align="center"><img src="docs/screenshots/hydration.png" width="240" alt="Hydration reminders"><br><sub><b>Hydration</b></sub></td>
     <td align="center"><img src="docs/screenshots/blocker.png" width="240" alt="App blocker"><br><sub><b>App blocker</b></sub></td>
   </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/sleep.png" width="240" alt="Overnight restrictions"><br><sub><b>Overnight restrictions</b></sub></td>
+  </tr>
 </table>
 
 ---
