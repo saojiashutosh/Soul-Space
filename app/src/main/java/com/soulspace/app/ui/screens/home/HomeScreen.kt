@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.soulspace.app.ui.components.CardMotif
 import com.soulspace.app.ui.components.SanctuaryCategoryCard
 import com.soulspace.app.ui.components.ZenMeditatingIcon
 import com.soulspace.app.ui.navigation.Screen
@@ -49,7 +50,7 @@ fun HomeScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     ZenMeditatingIcon(
                         modifier = Modifier.size(38.dp),
-                        color = SagePrimary
+                        color = CharcoalDeep
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
@@ -76,53 +77,50 @@ fun HomeScreen(
             }
         }
 
-        // Personalized Sanctuary Greeting
+        // Greeting
         item {
             Column {
                 Text(
-                    text = uiState.formattedDate.uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = SageDark,
-                    letterSpacing = 1.sp
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "${uiState.greeting}, Soul.",
+                    text = "${uiState.greeting}, Soul",
                     fontFamily = FontFamily.Serif,
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Normal,
+                    fontSize = 28.sp,
                     color = CharcoalDeep
                 )
                 Text(
-                    text = "Calm your senses and be present.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = "Calm your senses",
+                    style = MaterialTheme.typography.labelSmall,
                     color = CharcoalMuted
                 )
             }
         }
 
-        // Quick Category Cards (Sleep, Soothe, Unwind, Restore)
+        // Category cards
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 SanctuaryCategoryCard(
                     title = "Sleep",
-                    subtitle = "14 Restorative Sessions",
-                    backgroundColor = SageLight.copy(alpha = 0.5f),
+                    subtitle = "Restorative sessions",
+                    backgroundColor = IllusMint,
                     accentColor = SageDark,
+                    motif = CardMotif.Moon,
                     onClick = { onNavigateTo(Screen.Sleep.route) }
                 )
                 SanctuaryCategoryCard(
                     title = "Soothe",
-                    subtitle = "Mindful Breathing & Stillness",
-                    backgroundColor = WarmSand.copy(alpha = 0.6f),
-                    accentColor = OliveMuted,
+                    subtitle = "Breathing & stillness",
+                    backgroundColor = WarmSand,
+                    accentColor = TerracottaClay,
+                    motif = CardMotif.Stones,
+                    hillColor = IllusGrey,
                     onClick = { onNavigateTo(Screen.Meditation.route) }
                 )
                 SanctuaryCategoryCard(
                     title = "Unwind",
-                    subtitle = "Ambient Nature & White Noise",
-                    backgroundColor = SoftBlush.copy(alpha = 0.7f),
+                    subtitle = "Ambient nature sounds",
+                    backgroundColor = SoftBlush,
                     accentColor = TerracottaClay,
+                    motif = CardMotif.Sun,
+                    hillColor = IllusGrey,
                     onClick = { onNavigateTo(Screen.Sounds.route) }
                 )
             }
